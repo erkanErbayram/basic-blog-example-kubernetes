@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-mongo
+  namespace: production
+spec:
+  storageClassName: ""
+  resources:
+    requests:
+       storage: 5Gi
+  volumeMode: Filesystem
+  volumeName: pv-mongo
+  accessModes:
+    - ReadWriteOnce

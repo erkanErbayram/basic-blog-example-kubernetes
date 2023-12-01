@@ -1,0 +1,58 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: deployment-redis
+    tier: production
+  name: deployment-redis
+  namespace: production
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: deployment-redis
+      tier: production
+  template:
+    metadata:
+      labels:
+        app: deployment-redis
+        tier: production
+    spec:
+      containers:
+      - image: redis
+        name: redis
+        command: ["redis-server"]
+        args: ["--replica-announce-ip svc-redis-instance-1"]
+        volumeMounts:
+        - name: "pvc-redis"
+          mountPath: "/data"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"      
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10     
+      nodeSelector:
+        tier: production
+      tolerations:
+       - key: "tier"
+         operator: "Equal"
+         value: "production"
+         effect: "NoSchedule"
+      volumes:
+      - name: "pvc-redis"
+        persistentVolumeClaim:
+          claimName: "pvc-redis"  

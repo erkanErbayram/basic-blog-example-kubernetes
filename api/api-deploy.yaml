@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  namespace: production
+  labels:
+    tier: production
+    app: my-app
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 2
+      maxSurge: 2
+  minReadySeconds: 5
+  selector:
+    matchLabels:
+      app: my-app
+      tier: production
+  template:
+    metadata:
+      labels:
+        app: my-app
+        tier: production
+    spec:
+      containers:
+      - name: my-app-container
+        image: erkanerbayram/blogapi:latest
+        ports:
+        - containerPort: 5000
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /  
+            port: 5000  
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+           secretKeyRef:
+             name: mongodb-secret
+             key: MONGODB_URI
+        - name: REDIS_URI
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: REDIS_URI
+      nodeSelector:
+        tier: production
+      tolerations:
+       - key: "tier"
+         operator: "Equal"
+         value: "production"
+         effect: "NoSchedule"
