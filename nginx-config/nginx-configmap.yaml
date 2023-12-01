@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: production
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        server_name www.example-blog.com;
+
+        location / {
+            proxy_pass http://my-app-service:5000;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_cache_bypass $http_upgrade;
+        }
+    }
